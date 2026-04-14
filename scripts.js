@@ -1,7 +1,15 @@
 import jsonData from './items.json' with { type: 'json' };
     // The data you provided
     const items = jsonData
-    
+
+    const rarityRank = {
+    "Angelic": 1,
+    "Unholy": 2,
+    "Heroic": 3,
+    "Satanic Set": 4,
+    "Satanic": 5,
+    "Runeword": 6
+};
     let collectedItems = JSON.parse(localStorage.getItem('myCollectedItems')) || [];
 
     function init() {
@@ -43,7 +51,7 @@ import jsonData from './items.json' with { type: 'json' };
             const itemsInCat = type === "Total" ? items : items.filter(i => i["Item Type"] === type);
             const collectedInCat = itemsInCat.filter(i => collectedItems.includes(i["Item Name"]));
             const percent = Math.round((collectedInCat.length / itemsInCat.length) * 100) || 0;
-            
+            console.log(collectedInCat.length)
             // Check if this category is the one currently selected to highlight it
             const isSelected = (type === "Total" && typeFilter.value === "all") || (typeFilter.value === type);
 
@@ -64,6 +72,7 @@ import jsonData from './items.json' with { type: 'json' };
     function render() {
         const search = document.getElementById('searchInput').value.toLowerCase();
         const typeFilt = document.getElementById('typeFilter').value;
+        const rarityFilt = document.getElementById('rarityFilter').value;
         const statusFilt = document.getElementById('statusFilter').value;
         const grid = document.getElementById('itemGrid');
         
@@ -75,24 +84,61 @@ import jsonData from './items.json' with { type: 'json' };
             const isCollected = collectedItems.includes(name);
             const matchesSearch = name.toLowerCase().includes(search);
             const matchesType = typeFilt === 'all' || i["Item Type"] === typeFilt;
+            const matchesRarity = rarityFilt === 'all' || i["Item Rarity"] === rarityFilt;
             const matchesStatus = statusFilt === 'all' || 
                                  (statusFilt === 'acquired' && isCollected) || 
                                  (statusFilt === 'missing' && !isCollected);
             
-            return matchesSearch && matchesType && matchesStatus;
+            return matchesSearch && matchesType && matchesRarity && matchesStatus;
+        });
+
+        filtered.sort((a, b) => {
+        const rankA = rarityRank[a["Item Rarity"]] || 99; // Default 99 for unknown rarities
+        const rankB = rarityRank[b["Item Rarity"]] || 99;
+        
+        if (rankA !== rankB) {
+            return rankA - rankB;
+        }
+        // If rarities are the same, sort alphabetically by name as a backup
+        return a["Item Name"].localeCompare(b["Item Name"]);
         });
 
         filtered.forEach(item => {
             const isChecked = collectedItems.includes(item["Item Name"]);
             const card = document.createElement('div');
+            const rawName = item["Item Name"].replace(/&#039;/g, "'").replace(/&amp;/g, "&");
+            const wikiName = rawName.replace(/ /g, "_");
+            const wikiUrl = `https://herosiege.wiki.gg/wiki/${encodeURIComponent(wikiName)}`;
+
             card.className = `item-card ${item["Item Rarity"]} ${isChecked ? 'acquired' : ''}`;
-            card.innerHTML = `
-                <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleItem('${item["Item Name"].replace(/'/g, "\\'")}')">
-                <div class="item-info">
-                    <h3>${item["Item Name"]}</h3>
-                    <div class="meta">${item["Item Type"]} • Lvl ${item["Item Level Requirement"]}</div>
-                </div>
+            if(item["Item Rarity"].includes("Set")) {card.className = 'item-card Set'};
+            if(item["Item Rarity"].includes("Angelic")) {card.className = 'item-card Angelic'};
+            if(item["Item Rarity"].includes("Unholy")) {card.className = 'item-card Unholy'};
+            if(item["Item Rarity"].includes("Runeword")) {card.className = 'item-card Runeword'};
+            
+            // 1. Create the checkbox element properly
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = isChecked;
+            
+            // 2. Attach the event listener directly (no quote escaping needed!)
+            checkbox.addEventListener('change', () => toggleItem(item["Item Name"]));
+
+            // 3. Create the text content
+            const info = document.createElement('div');
+            info.className = 'item-info';
+            info.innerHTML = `
+                <h3>
+                    <a href="${wikiUrl}" target="_blank" style="color: inherit; text-decoration: none;">
+                    ${rawName}
+                    </a>
+                </h3>
+                <div class="meta">${item["Item Type"]} • Lvl ${item["Item Level Requirement"]}</div>
             `;
+
+            // 4. Put it all together
+            card.appendChild(checkbox);
+            card.appendChild(info);
             grid.appendChild(card);
         });
     }
@@ -100,5 +146,6 @@ import jsonData from './items.json' with { type: 'json' };
     document.getElementById('searchInput').addEventListener('input', render);
     document.getElementById('typeFilter').addEventListener('change', render);
     document.getElementById('statusFilter').addEventListener('change', render);
+    document.getElementById('rarityFilter').addEventListener('change', render);
 
     init();

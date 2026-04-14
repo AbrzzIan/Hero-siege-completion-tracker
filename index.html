@@ -11,8 +11,12 @@
             --text: #e0e0e0;
             --accent: #f39c12;
             --satanic: #e74c3c;
-            --heroic: #9b59b6;
+            --heroic: #71d5b2;
             --border: #333;
+            --set: rgba(3, 255, 57, 0.909);
+            --angelic: rgba(233, 252, 203, 0.909);
+            --unholy: rgba(250, 135, 189, 0.909);
+            --runeword: rgba(114, 126, 85, 0.909);
         }
 
         body {
@@ -103,6 +107,11 @@
         .item-card.acquired { opacity: 0.6; border-color: #2ecc71; background: #1a251e; }
         .item-card.Satanic { border-left: 4px solid var(--satanic); }
         .item-card.Heroic { border-left: 4px solid var(--heroic); }
+        .item-card.Set { border-left: 4px solid var(--set); }
+        .item-card.Angelic { border-left: 4px solid var(--angelic); }
+        .item-card.Unholy { border-left: 4px solid var(--unholy); }
+        .item-card.Runeword { border-left: 4px solid var(--runeword); }
+
 
         .item-info h3 { margin: 0; font-size: 1rem; }
         .meta { font-size: 0.8rem; opacity: 0.6; margin-top: 4px; }
@@ -133,6 +142,16 @@
                 <option value="missing">Missing Only</option>
                 <option value="acquired">Acquired Only</option>
             </select>
+            <select id="rarityFilter">
+            <option value="all">All Rarities</option>
+            <option value="Satanic">Satanic</option>
+            <option value="Heroic">Heroic</option>
+            <option value="Unholy">Unholy</option>
+            <option value="Runeword">Runeword</option>
+            <option value="Satanic Set">Set</option>
+            <option value="Angelic">Angelic</option>
+
+        </select>
         </div>
     </div>
 
